@@ -41,16 +41,7 @@ function(input, output, session) {
     # which allows for some data wrangling
     
     spg_data <- read_excel(spgdatafile,
-                           sheet = 1) %>% #,
-                           # col_types = c("text")) %>%
-        # select(school_name,
-        #        sbe_region,
-        #        subgroup,
-        #        spg_grade,
-        #        spg_score,
-        #        ach_score,
-        #        rdgs_ach_score,
-        #        mags_ach_score) %>%
+                           sheet = 1) %>%
         mutate(lea_name = as.factor(lea_name)) %>%
         mutate(sbe_region = as.factor(sbe_region)) %>%
         mutate(spg_grade = as.factor(spg_grade)) %>%
@@ -58,17 +49,27 @@ function(input, output, session) {
     
     updateSelectInput(session,
                       "region_with_updateSelectYear",
-                      choices = unique(spg_data$reporting_year))
+                      choices = sort(unique(spg_data$reporting_year)))
+    
+    updateSelectInput(session,
+                      "reportingyearUpdate",
+                      choices = sort(unique(spg_data$reporting_year)))
     
     output$boxPlot <- renderPlot({
-        ggplot(data = spg_data, aes_string(x = spg_data$sbe_region, y = input$achievement, fill=spg_data$sbe_region)) +
-            geom_boxplot(show.legend = FALSE) + 
-            # theme(legend.position="bottom") + 
-            theme_minimal() +
-            theme(axis.title.x = element_blank(),
-                  axis.ticks.x = element_blank(),
-                  axis.title.y = element_blank()) +
-            scale_fill_brewer(palette = "Set3")
+        spg_data_singleyear = spg_data %>%
+                                filter(
+                                    reporting_year == input$reportingyearUpdate
+                                ) 
+        ggplot(data = spg_data_singleyear, aes_string(x = spg_data_singleyear$sbe_region, 
+                                                      y = input$achievementScore, 
+                                                      fill=spg_data_singleyear$sbe_region)) +
+                geom_boxplot(show.legend = FALSE) +
+                theme_minimal() +
+                theme(axis.title.x = element_blank(),
+                      axis.ticks.x = element_blank(),
+                      axis.title.y = element_blank()) +
+                scale_fill_brewer(palette = "Set3")
+
     })
     
     output$boxPlotExplanation <- renderText({
@@ -93,7 +94,6 @@ function(input, output, session) {
                   axis.ticks.x = element_blank(),
                   axis.title.y = element_blank(),
                   legend.position = "left") +
-            # xlab("State Board of Education Region") +
             coord_flip() + 
             ylab("Number of Schools") + 
             scale_fill_brewer(type = "qual", 
@@ -104,16 +104,6 @@ function(input, output, session) {
         
     })
     
-    # dt_browser <- reactive({
-    #     spg_data %>%
-    #         # filter(report_year==input$tabularyear) %>%
-    #         select(reporting_year,
-    #                lea_name,
-    #                school_name,
-    #                spg_score) %>%
-    #         # arrange(desc(avgrat)) %>%
-    #         # datatable(extensions = "Responsive", options = list(lengthMenu = c(5, 30, 50), pageLength = 5))
-    # })
     tabularspg <- spg_data %>%
         select(reporting_year,
                lea_name,
@@ -130,31 +120,35 @@ function(input, output, session) {
         mutate(sbe_region = str_to_title(sbe_region))
     
     dt_browser <- datatable(tabularspg, 
-                            colnames = c("Year",
-                                         "Education Agency",
-                                         "School",
-                                         "Region",
-                                         "Performance Grade",
-                                         "Performance Score",
-                                         "EVAAS Score",
-                                         "EVAAS Status",
-                                         "Overall Achievement Score",
-                                         "Reading Achievement Score",
-                                         "Math Achievement Score", 
-                                         "4-year Cohort Graduation Rate Score"), 
+                            colnames = c("Year", #1
+                                         "LEA", #2
+                                         "School", #3
+                                         "Region", #4
+                                         "Grade", #5
+                                         "Score", #6
+                                         "EVAAS Score", #7
+                                         "EVAAS Status", #8
+                                         "Overall Achievement", #9
+                                         "Reading Achievement", #10
+                                         "Math Achievement", #11
+                                         "4-year Cohort Graduation Rate"), #12
                             extensions = "Responsive",
                             style = 'bootstrap',
                             fillContainer = getOption("DT.fillContainer", NULL),
-                            rownames = FALSE
-    )
-                            # callback = JS("return table;"), rownames, colnames, container,
-                            # caption = NULL, filter = c("none", "bottom", "top"), escape = TRUE,
-                            # style = "default", width = NULL, height = NULL, elementId = NULL,
-                            # fillContainer = getOption("DT.fillContainer", NULL),
-                            # autoHideNavigation = getOption("DT.autoHideNavigation", NULL),
-                            # selection = c("multiple", "single", "none"), extensions = list(),
-                            # plugins = NULL, editable = FALSE)
+                            rownames = FALSE,
+                            options = list(
+                                columnDefs = list(list(className = 'dt-center', width = '200px', targets = c(1, 5, 6, 7)))
+                            )
+    ) %>% formatRound(c(6, #6
+                             7, #7
+                             9, #9
+                             10, #10
+                             11, #11
+                             12), 1)
+
     output$tabulardata <- renderDataTable({dt_browser})
+    
+
     
     # output$StackedBarExplanation <- renderText({
     #     paste("\n\n\nThis bar chart shows the school performance grade distribution for the ", 

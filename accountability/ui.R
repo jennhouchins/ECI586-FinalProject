@@ -16,15 +16,14 @@
 library(shiny)
 library(shinydashboard)
 dashboardPage(
-    dashboardHeader(title = "NC Public Schools Accountability and Testing Reports"),
+    dashboardHeader(title = "Accountability"),
     dashboardSidebar(
         sidebarMenu(
-            menuItem("Dashboard Information", tabName = "about", icon = icon("info")),
+            menuItem("About this Dashboard", tabName = "about", icon = icon("book-open")),
             menuItem("Achievement", tabName = "achievement", icon = icon("chart-bar")),
             menuItem("School Performance", tabName = "widgets", icon = icon("school")),
             menuItem("Data Browser", tabName = "tabulate", icon = icon("table")),
-            menuItem("About the Author", tabName = "jenn", icon = icon("user-edit")),
-            menuItem("About the Project", tabName = "project", icon = icon("github"))
+            menuItem("Project Information", tabName = "jenn", icon = icon("info"))
             
         )
     ),
@@ -33,22 +32,42 @@ dashboardPage(
             # First tab content
             tabItem(tabName = "about",
                     fluidRow(
-                        column(6,
-                               br(),
-                               HTML('<img src="NCflagimage.png", width="100%", align=center></img>')
-                        ),
-                        column(6,
-                               h3(p("What is the state of education in North Carolina?")),
-                               h5(p("This application explores aggregate data collected and reported by the North Carolina Department of Public Instruction. These data include accountability reporting such as School Report Cards, Student Testing, and Teacher Performance.")),
-                               br(),
-                               br(),
-                               h4("Built with ",
-                                  img(src = "https://www.rstudio.com/wp-content/uploads/2014/04/shiny.png", height = "30px"),
-                                  " by ",
-                                  img(src = "https://www.rstudio.com/wp-content/uploads/2014/07/RStudio-Logo-Blue-Gray.png", height = "30px")
-                               )
+                        box(title = "Welcome to the NC Public Schools Accountability and Testing Reports Dashboard",
+                            solidHeader = TRUE,
+                            width = 12,
+                            status = "primary",
+                            column(6,
+                                   br(),
+                                   HTML('<img src="NCflagimage.png", width="100%", align=center></img>')
+                            ),
+                            column(6,
+                                   h3(p("How are North Carolina Schools performing?")),
+                                   h5(p("This application explores aggregate data collected and reported by the North Carolina Department of Public Instruction. These data include accountability reporting such as schools' performance scores, EVAAS scores and status, achievement scores, and 4-year cohort graduation rates.")),
+                                   br(),
+                                   br(),
+                                   h4("Built with ",
+                                      img(src = "https://www.rstudio.com/wp-content/uploads/2014/04/shiny.png", height = "30px"),
+                                      " by ",
+                                      img(src = "https://www.rstudio.com/wp-content/uploads/2014/07/RStudio-Logo-Blue-Gray.png", height = "30px")
+                                   )
+                            )
                         )
                         
+                        
+                    ),
+                    fluidRow(
+                        box(title = "Target Audience",
+                            solidHeader = TRUE,
+                            width = 6, 
+                            status = "primary",
+                            h5(p("describe target audience"))
+                        ),
+                        box(title = "Data Sources",
+                            solidHeader = TRUE,
+                            width = 6, 
+                            status = "primary",
+                            h5(p("describe data sources"))
+                        )
                     )
             ),
             
@@ -57,17 +76,47 @@ dashboardPage(
                     fluidRow(
                         box(
                             title = "Controls",
-                            selectInput("achievement", h4("Choose a Score:"),
-                                       choices = list("Reading Achievement" = "rdgs_ach_score",
-                                                      "Mathematics Achievement"="mags_ach_score",
-                                                      "Overall Achievement" = "ach_score"),
-                                       selected = "rdgs_ach_score")
+                            solidHeader = TRUE,
+                            width = 4,
+                            status = "primary",
+                            selectInput("achievementScore",
+                                        h5("Achievement Score:"),
+                                        choices = list("Reading Achievement" = "rdgs_ach_score",
+                                                       "Mathematics Achievement"="mags_ach_score",
+                                                       "Overall Achievement" = "ach_score"),
+                                        selected = "rdgs_ach_score"),
+                            selectInput("reportingyearUpdate", 
+                                        h5("Reporting Year:"),
+                                        choices = NULL,
+                                        selected = "reporting_year")#,
+                            # selectInput("achievementRegion",
+                            #             h5("Choose Region:"),
+                            #             choices = c("North Central" = "north central",
+                            #                        "Northeast" = "northeast",
+                            #                        "Northwest" = "northwest",
+                            #                        "Piedmont-Triad" = "piedmont triad",
+                            #                        "Sandhills" = "sandhills",
+                            #                        "Southeast" = "southeast",
+                            #                        "Southwest" = "southwest",
+                            #                        "Virtual" = "virtual",
+                            #                        "Western" = "western"),
+                            #             selected = "north central")
                         ),
-                        box(title = "Achievement Distribution",
+                        box(title = "Region Snapshot",
+                            solidHeader = TRUE,
+                            width = 8,
+                            status = "primary",
+                        )
+                        
+                    ),
+                    fluidRow(
+                        box(title = "Achievement Distribution Across Regions",
+                            solidHeader = TRUE,
+                            width = 12,
+                            status = "primary",
                             textOutput("boxPlotExplanation"),
                             plotOutput("boxPlot")
                         )
-                        
                     )
             ),
             
@@ -75,15 +124,20 @@ dashboardPage(
             
             # Third tab content
             tabItem(tabName = "widgets",
-                    # fluidRow(
-                    #     box(
-                    #         textOutput("regionSnapshot"),
-                    #         solidHeader = TRUE
-                    #     )
-                    # ),
+                    fluidRow(
+                        valueBox(76, "some info", icon = icon("apple"), color = "purple"),
+                        valueBox(25, "other info")
+                        # box(
+                        #     textOutput("regionSnapshot"),
+                        #     solidHeader = TRUE
+                        # )
+                    ),
                     fluidRow(
                         box(
-                            title = "Filters",
+                            title = "Controls",
+                            solidHeader = TRUE,
+                            width = 3,
+                            status = "primary",
                             selectInput("region_with_updateSelectYear",
                                        h4("Reporting Year:"),
                                        choices = NULL,
@@ -101,7 +155,10 @@ dashboardPage(
                                                    "Western" = "western"),
                                        selected = c("north central"))
                         ),
-                        box(
+                        box(title = "Proportions of Performance Grades",
+                            solidHeader = TRUE,
+                            width = 8,
+                            status = "primary",
                             plotOutput("stackedBar_use_with_updateSelectInput")
                         )
                     )
@@ -109,31 +166,40 @@ dashboardPage(
             
             # Fourth tab item
             tabItem(tabName = "tabulate",
-                        fluidPage(
+                    fluidRow(
+                        box(title = "How-to Information", width = 12, status = "primary",
+                            solidHeader = TRUE,
+                            h5(p("You can use this table to explore the school performance data on your own."))
+                        )
+                    ),    
+                    fluidRow(
+                        box(title = "School Performance Data", width = 12, status = "primary",
+                            solidHeader = TRUE,
                             dataTableOutput("tabulardata")
+                            )
+                            
                         )
                     ),
             
             # Fifth tab item
             tabItem(tabName = "jenn",
                        fluidRow(
-                           column(3,
-                                  HTML('<img src="JennHeadshot_Small.jpeg", width="115%", align=center></img>')
+                           # author information
+                           box(title = "About the Author", width = 6,status = "primary",solidHeader = TRUE,
+                               div(img(src = "JennHeadshot_Small.jpeg", width = "60%"), style="text-align:center;"),
+                               br(),
+                               h5(p("Jennifer Houchins is a doctoral candidate in Learning Design and Technology at North Carolina State University. Her research examines students’ use of computational thinking and the effective use of instructional technology to deepen conceptual understanding in both formal and informal K-12 learning environments. She currently a graduate research assistant for the InfuseCS and the Programmed Robotics in the School Makerspace (PRISM) projects.")),
+                               HTML('<br /><p>You can learn more about Jennifer and her work by <a href="http://jenniferkhouchins.com/">visiting her website.</a></p>')
                            ),
-                           column(8,
-                                  # h4(p("The Author")),
-                                  h5(p("Jennifer Houchins is a doctoral candidate in Learning Design and Technology at North Carolina State University. Her research examines students’ use of computational thinking and the effective use of instructional technology to deepen conceptual understanding in both formal and informal K-12 learning environments. She currently a graduate research assistant for the InfuseCS and the Programmed Robotics in the School Makerspace (PRISM) projects.")),
-                                  HTML('<p>You can learn more about Jennifer and her work by <a href="http://jenniferkhouchins.com/">visiting her website.</a></p>')
-                           )
-                       )
-                    ),
-            
-            # Sixth tab item
-            tabItem(tabName = "project",
-                    fluidRow(
-                        column(8,
-                               h4(p("About the Project")),
-                               h6(p("This Shiny app was developed for the final project assignment of ECI 586 (Intro to Learning Analytics).")),
+                           # project information
+                        box(title = "About this Project", width = 6,status = "primary",solidHeader = TRUE,
+                               h5(p("This Shiny app was developed for the final project assignment of ECI 586 (Intro to Learning Analytics). It is designed to follow the Data-Intensive Research Workflow (Krumm, Means, & Bienkowski, 2018). ")),
+                            br(),
+                            HTML('<p>If you would like to see the code for this project, you can download (or fork) it from the <a href="https://github.com/jennhouchins/ECI586-FinalProject">Github repository.</a></p>'),
+                            br(),
+                            h4(p("References:")),
+                           HTML('<p>Krumm, A., Means, B., & Bienkowski, M. (2018). <i>Learning analytics goes to school: A collaborative approach to improving education.</i> Routledge.</p>')
+                           
                         )
                     )
             )
