@@ -281,6 +281,9 @@ spg_data_combined <- rbind(spg_data_combined, spg_data1617)
 # clean up, clean up...
 rm(spg_data1617)
 
+# order the data by reporting year and region before outputting to a file
+spg_data_combined <- arrange(spg_data_combined, reporting_year, sbe_region)
+
 # save the processed uniform data for the shiny app's use
 outputpath <- file.path(workingdir, "accountability", "data", "SPGData_processed.xlsx")
 write_xlsx(spg_data_combined, outputpath)
