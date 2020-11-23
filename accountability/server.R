@@ -22,7 +22,7 @@ library(tidyverse)
 library(DT)
 
 function(input, output, session) {
-    
+    # LOAD THE DATA ################################
     spgdatafile <-"data/SPGData_processed.xlsx"
     
     spg_data <- read_excel(spgdatafile,
@@ -40,6 +40,7 @@ function(input, output, session) {
     
     arrange(spg_data, reporting_year, sbe_region)
     
+    # UPDATE INPUTS ################################
     updateSelectInput(session,
                       "performanceYearSelect",
                       choices = sort(unique(spg_data$reporting_year)))
@@ -48,23 +49,27 @@ function(input, output, session) {
                       "reportingyearUpdate",
                       choices = sort(unique(spg_data$reporting_year)))
     
+    # REGIONAL ACHIEVEMENT TAB OUTPUTS ################################
+    
+    # reactive achievement score boxplot
     output$boxPlot <- renderPlot({
         spg_data_singleyear = spg_data %>%
-                                filter(
-                                    reporting_year == input$reportingyearUpdate
-                                ) 
+            filter(
+                reporting_year == input$reportingyearUpdate
+            ) 
         ggplot(data = spg_data_singleyear, aes_string(x = spg_data_singleyear$sbe_region, 
                                                       y = input$achievementScore, 
                                                       fill=spg_data_singleyear$sbe_region)) +
-                geom_boxplot(show.legend = FALSE) +
-                theme_minimal() +
-                theme(axis.title.x = element_blank(),
-                      axis.ticks.x = element_blank(),
-                      axis.title.y = element_blank()) +
-                scale_fill_brewer(palette = "Set3")
-
+            geom_boxplot(show.legend = FALSE) +
+            theme_minimal() +
+            theme(axis.title.x = element_blank(),
+                  axis.ticks.x = element_blank(),
+                  axis.title.y = element_blank()) +
+            scale_fill_brewer(palette = "Set3")
+        
     })
     
+    # reactive explanation of mean achievement regional snapshot
     output$achievementSnapshotExplain <- renderText({
         score <- input$achievementScore
         
@@ -84,6 +89,7 @@ function(input, output, session) {
               "and light blue represents either no change or a value of NA.")
     })
     
+    # reactive infoBox reporting mean regional achievement
     output$achievementValue <- renderInfoBox({
         score <- input$achievementScore
         
@@ -111,6 +117,7 @@ function(input, output, session) {
         )
     })
     
+    # reactive infoBox reporting difference in mean achievment from year prior
     output$achievementDifference <- renderInfoBox({
         
         scoreAverage <- spg_data %>%
@@ -121,7 +128,7 @@ function(input, output, session) {
             select(input$achievementScore)
         
         scoreAverage <- mean(scoreAverage[[1]], na.rm = TRUE)
-
+        
         if (input$reportingyearUpdate == 2015) {
             meanDiff <- NA 
         } else {
@@ -155,6 +162,10 @@ function(input, output, session) {
         )
     })
     
+    
+    # REGIONAL SCHOOL PERFORMANCE OUTPUTS ################################
+    
+    # reactive valueBox reporting total number of schools in region
     output$numSchoolsTotal <- renderValueBox({
         
         filtereddata <- spg_data %>%
@@ -162,14 +173,15 @@ function(input, output, session) {
                 sbe_region == input$performanceRegionSelect,
                 reporting_year == input$performanceYearSelect
             )
-            
-            schoolCount <- unique(filtereddata$school_name) %>%
-                length() 
         
-        valueBox(schoolCount, "Number of Schools", icon = icon("apple"),
+        schoolCount <- unique(filtereddata$school_name) %>%
+            length() 
+        
+        valueBox(schoolCount, "Number of Schools", icon = icon("school"),
                  color = "purple")
     })
     
+    # reactive valueBox reporting number of high performing schools in region
     output$numASchools <- renderValueBox({
         
         filtereddata <- spg_data %>%
@@ -186,6 +198,7 @@ function(input, output, session) {
                  color = "green")
     })
     
+    # reactive valueBox reporting low performing schools in region
     output$numFSchools <- renderValueBox({
         
         filtereddata <- spg_data %>%
@@ -203,6 +216,7 @@ function(input, output, session) {
                  color = "orange")
     })
     
+    # reactive valueBox reporting num schools in region where growth not met
     output$numSchoolsNotMet <- renderValueBox({
         
         filtereddata <- spg_data %>%
@@ -220,6 +234,7 @@ function(input, output, session) {
                  color = "red")
     })
     
+    # reactive valueBox reporting num schools in region where growth met
     output$numSchoolsMet <- renderValueBox({
         
         filtereddata <- spg_data %>%
@@ -237,6 +252,7 @@ function(input, output, session) {
                  color = "blue")
     })
     
+    # reactive valueBox reporting num schools in region where growth exceeded
     output$numSchoolsExceeded <- renderValueBox({
         filtereddata <- spg_data %>%
             filter(
@@ -253,6 +269,7 @@ function(input, output, session) {
                  color = "fuchsia")
     })
     
+    # reactive bar chart that shows regional distribution of performance grades
     output$stackedBar_use_with_updateSelectInput <- renderPlot({
         spg_data %>%
             filter(
@@ -269,7 +286,6 @@ function(input, output, session) {
                   axis.title.y = element_blank(),
                   axis.ticks.y = element_blank(),
                   legend.position = "left") +
-            # ylab("Number of Schools") + 
             scale_fill_brewer(type = "qual", 
                               palette = "Set3", 
                               direction = -1, 
@@ -278,6 +294,9 @@ function(input, output, session) {
         
     })
     
+    # DATA BROWSER TAB OUTPUTS ################################
+    
+    # set up tabular data for data browsing using datatable
     tabularspg <- spg_data %>%
         select(reporting_year,
                lea_name,
@@ -293,6 +312,8 @@ function(input, output, session) {
                cgrs_score) %>%
         mutate(sbe_region = str_to_title(sbe_region))
     
+    # formatting to make the datatable easier to read and comprehend
+    # and setting table options
     dt_browser <- datatable(tabularspg, 
                             colnames = c("Year", #1
                                          "LEA", #2
@@ -316,6 +337,7 @@ function(input, output, session) {
                             )
     ) %>% formatRound(c(6,7,9,10,11,12), 1)
 
+    # responsive datatable of school performance and achievement data
     output$tabulardata <- renderDataTable({dt_browser})
     
     
